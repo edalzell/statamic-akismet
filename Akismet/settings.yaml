@@ -1,0 +1,8 @@
+fields:
+  akismet_key:
+    type: text
+    validate: required
+  forms:
+    type: suggest
+    mode: form
+    display: Form
