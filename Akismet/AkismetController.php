@@ -59,25 +59,25 @@ class AkismetController extends Controller
     public function getSpam()
     {
         // @todo replace when https://github.com/statamic/v2-hub/issues/629 is fixed
-        $spam = [];
+        // `getFilesByType` retains the array keys so it can return an array that starts at '1' which mucks
+        // up the front-end because it gets converted to an Object instead of an array.
+        // Which is why we need to use `values`
+        $spam = collect(Folder::disk('storage')->getFilesByType("addons/{$this->getAddonName()}", 'php'))
+            ->map(function($file ) {
+                $filename = pathinfo($file)['filename'];
+                $submission = $this->storage->getSerialized($filename)->toArray();
 
-        // don't use collection and map, etc as `getFilesByType` retains the array keys so it can return
-        // an array that starts at '1' which mucks up the front-end because it gets converted to an Object
-        // instead of an array
-        foreach (Folder::disk('storage')->getFilesByType("addons/{$this->getAddonName()}", 'php') as $file)
-        {
-            $filename = pathinfo($file)['filename'];
-            $submission = $this->storage->getSerialized($filename)->toArray();
+                // add the id so that Dossier can remove it from the view after approve/discard
+                $submission['id'] = $filename;
 
-            // add the id so that Dossier can remove it from the view after approve/discard
-            $submission['id'] = $filename;
+                // gotta set the items to not checked...kinda weird it's not a default but whatever
+                // if this isn't set the checkboxes don't work
+                $submission['checked'] = false;
 
-            // gotta set the items to not checked...kinda weird it's not a default but whatever
-            // if this isn't set the checkboxes don't work
-            $submission['checked'] = false;
-
-            $spam[] = $submission;
-        }
+                return $submission;
+            })
+            ->values() // this resets the array indexes to 0, see comment above
+            ->all();
 
         return [
             'columns' => $this->akismet->getFields(),
