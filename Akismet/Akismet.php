@@ -44,12 +44,20 @@ class Akismet
      */
     private $site_url;
 
+    /**
+     * addon config params
+     *
+     * @var array
+     */
+    private $config;
+
     public function __construct()
     {
         $this->api_key = $this->getConfig('akismet_key');
         $this->site_url = Config::getSiteUrl();
         $this->httpClient = new Client();
         $this->ua = $this->getUserAgent();
+        $this->config = $this->getConfig();
     }
 
     protected function getUserAgent()
@@ -78,6 +86,30 @@ class Akismet
     }
 
     /**
+     * Get the form we are checking
+     *
+     * @return string
+     */
+    public function getForm()
+    {
+        return $this->config['form_and_fields']['form'];
+    }
+
+    /**
+     * Get the form fields as an array
+     *
+     * @return array
+     */
+    public function getFields()
+    {
+        return [
+            array_get($this->config, 'form_and_fields:author', 'author'),
+            array_get($this->config, 'form_and_fields:email', 'email'),
+            array_get($this->config, 'form_and_fields:content', 'content')
+            ];
+    }
+
+    /**
      * Validates potential spam against the Akismet API
      *
      * @param array $data
@@ -95,11 +127,15 @@ class Akismet
      */
     public function detectSpam(array $data = [])
     {
+        $author_key = array_get($this->config, 'form_and_fields:author', 'author');
+        $email_key = array_get($this->config, 'form_and_fields:email', 'email');
+        $content_key = array_get($this->config, 'form_and_fields:content', 'content');
+
         $params = $this->mergeWithDefaultParams(
             [
-                'comment_author' => $data['author'] ?? null,
-                'comment_content' => $data['content'] ?? null,
-                'comment_author_email' => $data['email'] ?? null,
+                'comment_author' => $data[$author_key] ?? null,
+                'comment_content' => $data[$content_key] ?? null,
+                'comment_author_email' => $data[$email_key] ?? null,
             ]
         );
 
@@ -206,11 +242,15 @@ class Akismet
      */
     public function submitHam(array $data = [])
     {
+        $author_key = $this->getConfig('author', 'author');
+        $email_key = $this->getConfig('email', 'email');
+        $content_key = $this->getConfig('content', 'content');
+
         $params = $this->mergeWithDefaultParams(
             [
-                'comment_author' => $data['author'] ?? null,
-                'comment_content' => $data['content'] ?? null,
-                'comment_author_email' => $data['email'] ?? null,
+                'comment_author' => $data[$author_key] ?? null,
+                'comment_content' => $data[$content_key] ?? null,
+                'comment_author_email' => $data[$email_key] ?? null,
             ]
         );
 

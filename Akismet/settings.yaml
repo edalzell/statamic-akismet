@@ -1,8 +1,13 @@
 fields:
+  akismet_section:
+    type: section
+    display: Akismet
   akismet_key:
     type: text
     validate: required
-  forms:
-    type: suggest
-    mode: form
-    display: Form
+  form_fields_section:
+    type: section
+    display: Form & Fields
+  form_and_fields:
+    type: akismet
+    display: ' '

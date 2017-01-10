@@ -45,7 +45,7 @@ class AkismetListener extends Listener
     public function checkForSpam($submission)
     {
         // only do something if we're on the right formset
-        if (in_array($submission->formset()->name(), $this->getConfig('forms')))
+        if ($submission->formset()->name() == $this->akismet->getForm())
         {
             if ($spam = $this->akismet->detectSpam($submission->data()))
             {
@@ -81,7 +81,7 @@ class AkismetListener extends Listener
      */
     public function nav(Nav $nav)
     {
-        $charge = (new NavItem)->name('Akismet')->route('akismet')->icon('untag');
+        $charge = (new NavItem)->name('Spam Queue')->route('akismet')->icon('untag');
         $nav->addTo('tools', $charge);
     }
 }

@@ -31,8 +31,6 @@ module.exports = {
         },
 
         allItemsChecked: function() {
-            console.log('# of items: ' + this.items.length);
-            console.log('# of checked items: ' + this.checkedItems.length);
             return this.items.length === this.checkedItems.length;
         }
     },

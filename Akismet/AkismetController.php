@@ -2,6 +2,7 @@
 
 namespace Statamic\Addons\Akismet;
 
+use Statamic\API\Form;
 use Statamic\API\Folder;
 use Statamic\API\Helper;
 use Statamic\Extend\Controller;
@@ -58,27 +59,50 @@ class AkismetController extends Controller
     public function getSpam()
     {
         // @todo replace when https://github.com/statamic/v2-hub/issues/629 is fixed
-        $spam = collect(Folder::disk('storage')->getFilesByType("addons/{$this->getAddonName()}", 'php'))
-            ->map(function($file, $ignored)
-            {
-                $filename = pathinfo($file)['filename'];
-                $content = $this->storage->getSerialized($filename)->toArray();
+        $spam = [];
 
-                // add the id so that Dossier can remove it from the view after approve/discard
-                $content['id'] = $filename;
+        // don't use collection and map, etc as `getFilesByType` retains the array keys so it can return
+        // an array that starts at '1' which mucks up the front-end because it gets converted to an Object
+        // instead of an array
+        foreach (Folder::disk('storage')->getFilesByType("addons/{$this->getAddonName()}", 'php') as $file)
+        {
+            $filename = pathinfo($file)['filename'];
+            $submission = $this->storage->getSerialized($filename)->toArray();
 
-                // gotta set the items to not checked...kinda weird it's not a default but whatever
-                // if this isn't set the checkboxes don't work
-                $content['checked'] = false;
+            // add the id so that Dossier can remove it from the view after approve/discard
+            $submission['id'] = $filename;
 
-                return $content;
-            })
-            ->all();
+            // gotta set the items to not checked...kinda weird it's not a default but whatever
+            // if this isn't set the checkboxes don't work
+            $submission['checked'] = false;
+
+            $spam[] = $submission;
+        }
 
         return [
-            'columns' => ['author', 'email', 'content'],
+            'columns' => $this->akismet->getFields(),
             'items' => $spam
         ];
 
+    }
+
+    public function getForms()
+    {
+        return collect(Form::all())->map(function ($form) {
+            $fields = collect(array_keys(Form::get($form['name'])->formset()->data()['fields']));
+
+            $fields = $fields->map(function ($field) {
+                return [
+                    'text' => ucfirst($field),
+                    'value' => $field,
+                ];
+            });
+
+            return [
+                'text' => $form['title'],
+                'value' => $form['name'],
+                'fields' => $fields
+            ];
+        });
     }
 }

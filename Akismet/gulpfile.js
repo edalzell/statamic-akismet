@@ -10,7 +10,7 @@ elixir(function (mix) {
 });
 
 gulp.task('release', function() {
-   return gulp.src(['../**/*', '!./node_modules/', '!./node_modules/**'])
+   return gulp.src(['../**/*', '!./node_modules/', '!./node_modules/**', '!../.git', '!../.idea', '!./*.zip'])
        .pipe(zip('akismet.zip'))
        .pipe(gulp.dest('../'));
 });
