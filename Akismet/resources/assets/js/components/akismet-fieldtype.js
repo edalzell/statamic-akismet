@@ -1,5 +1,4 @@
 Vue.component('akismet-fieldtype', {
-
     template: `
         <div>
             <div v-if="loading" class="loading loading-basic">
@@ -7,10 +6,12 @@ Vue.component('akismet-fieldtype', {
             </div>
 
             <div v-else>
-            <p>Form: <suggest-fieldtype :data.sync="selectedData.form" :config="form_config" name="form" :suggestions-prop="forms"></suggest-fieldtype></p>
-            <p>Author: <suggest-fieldtype :data.sync="selectedData.author" :config="field_config" name="author" :suggestions-prop="fields"></suggest-fieldtype></p>
-            <p>Email: <suggest-fieldtype :data.sync="selectedData.email" :config="field_config" name="email" :suggestions-prop="fields"></suggest-fieldtype></p>
-            <p>Content: <suggest-fieldtype :data.sync="selectedData.content" :config="field_config" name="content" :suggestions-prop="fields"></suggest-fieldtype></p>
+                <p>Form: <suggest-fieldtype :data.sync="selectedData.form" :config="form_config" name="form" :suggestions-prop="forms"></suggest-fieldtype></p>
+                <div v-if="hasSelectedForm">
+                    <p>Author: <suggest-fieldtype v-ref:author :data.sync="selectedData.author" :config="field_config" name="author" :suggestions-prop="fields"></suggest-fieldtype></p>
+                    <p>Email: <suggest-fieldtype :data.sync="selectedData.email" :config="field_config" name="email" :suggestions-prop="fields"></suggest-fieldtype></p>
+                    <p>Content: <suggest-fieldtype :data.sync="selectedData.content" :config="field_config" name="content" :suggestions-prop="fields"></suggest-fieldtype></p>
+                </div>
             </div>
         </div>
     `,
@@ -36,6 +37,12 @@ Vue.component('akismet-fieldtype', {
                 type: 'suggest',
                 max_items: 1
             },
+        }
+    },
+
+    computed: {
+        hasSelectedForm() {
+            return this.data && this.data.form;
         }
     },
 
@@ -67,15 +74,19 @@ Vue.component('akismet-fieldtype', {
 
     watch: {
         'selectedData.form': function() {
-            if (this.selectedData.form) {
-                this.getFields(this.selectedData.form[0]);
-                if (!this.data) {
-                    this.data = {};
+            // Reset the fields array before loading new data
+            this.getFields();
+
+            // Wait until next tick before repopulating fields array
+            this.$nextTick(() => {
+                if (this.selectedData.form) {
+                    this.getFields(this.selectedData.form[0]);
+                    if (!this.data) {
+                        this.data = {};
+                    }
+                    this.data.form = this.selectedData.form;
                 }
-                this.data.form = this.selectedData.form;
-            } else {
-                this.getFields();
-            }
+            });
         },
         'selectedData.author': function() {
             this.data.author = this.selectedData.author;

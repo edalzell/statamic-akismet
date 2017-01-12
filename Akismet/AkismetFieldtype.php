@@ -43,11 +43,11 @@ class AkismetFieldtype extends Fieldtype
     public function process($data)
     {
         // As the data comes from a selectize field, it's in an array.
-        // We only have of everything so get rid of all the arrays
-        $data['form'] = reset($data['form']);
-        $data['author'] = reset($data['author']);
-        $data['email'] = reset($data['email']);
-        $data['content'] = reset($data['content']);
+        // We only have one of everything so get rid of all the arrays
+        $data['form'] = isset($data['form']) ? reset($data['form']): '';
+        $data['author'] = isset($data['author']) ? reset($data['author']) : '';
+        $data['email'] = isset($data['email']) ? reset($data['email']) : '';
+        $data['content'] = isset($data['content']) ? reset($data['content']) : '';
 
         return $data;
     }
