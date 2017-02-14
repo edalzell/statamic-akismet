@@ -24,6 +24,8 @@ class AkismetController extends Controller
      */
     public function index()
     {
+        $this->authorize('super');
+
         return $this->view('index', ['title' => 'Spam Queue']);
     }
 
