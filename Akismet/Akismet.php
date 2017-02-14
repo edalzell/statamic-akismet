@@ -2,13 +2,14 @@
 
 namespace Statamic\Addons\Akismet;
 
+use Statamic\API\Str;
+use Statamic\API\URL;
 use GuzzleHttp\Client;
-use Statamic\Addons\Akismet\Exceptions\AkismetInvalidKeyException;
-use Statamic\API\Config;
 use Statamic\API\File;
 use Statamic\API\Path;
-use Statamic\API\Str;
+use Statamic\API\Config;
 use Statamic\Extend\Extensible;
+use Statamic\Addons\Akismet\Exceptions\AkismetInvalidKeyException;
 
 class Akismet
 {
@@ -191,7 +192,7 @@ class Akismet
     {
         $params = [
             'key' => $this->api_key,
-            'blog' => Config::getSiteUrl()
+            'blog' => URL::makeAbsolute(Config::getSiteUrl())
         ];
 
         /*
