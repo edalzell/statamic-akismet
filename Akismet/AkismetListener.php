@@ -2,9 +2,10 @@
 
 namespace Statamic\Addons\Akismet;
 
+use Statamic\Extend\Listener;
 use Statamic\CP\Navigation\Nav;
 use Statamic\CP\Navigation\NavItem;
-use Statamic\Extend\Listener;
+use Statamic\Exceptions\SilentFormFailureException;
 
 class AkismetListener extends Listener
 {
@@ -49,7 +50,6 @@ class AkismetListener extends Listener
         {
             if ($spam = $this->akismet->detectSpam($submission->data()))
             {
-                // @todo want to stop submission but not give any indication
                 // if the discard thingy is not set, put in spam queue
                 if (!$spam !== 'discard')
                 {
@@ -60,14 +60,9 @@ class AkismetListener extends Listener
                     $this->akismet->addToQueue($submission);
                 }
 
-                // @todo remove this when https://github.com/statamic/v2-hub/issues/1165 is fixed
-                // remove the existing input from the request so that there are no `old` values in the form,
-                // because we are pretending to have submitted the form
-
-                // @todo pretty sure this will mess up any form listeners called after me so....
-                request()->replace([]);
-
-                return ['errors' => ['is_spam' => true]];
+                // throw error that Statamic will treat same as honeypot. i.e. the form will
+                // look like it succeeded
+                throw SilentFormFailureException('Spam submitted');
             }
         }
 
