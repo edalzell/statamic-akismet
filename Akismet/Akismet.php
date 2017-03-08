@@ -128,15 +128,13 @@ class Akismet
      */
     public function detectSpam(array $data = [])
     {
-        $author_key = array_get($this->config, 'form_and_fields:author', 'author');
-        $email_key = array_get($this->config, 'form_and_fields:email', 'email');
-        $content_key = array_get($this->config, 'form_and_fields:content', 'content');
+        list($author_key, $email_key, $content_key) = $this->getFields();
 
         $params = $this->mergeWithDefaultParams(
             [
-                'comment_author' => $data[$author_key] ?? null,
-                'comment_content' => $data[$content_key] ?? null,
-                'comment_author_email' => $data[$email_key] ?? null,
+                'comment_author' => array_get($data, $author_key),
+                'comment_content' => array_get($data, $content_key),
+                'comment_author_email' => array_get($data, $email_key),
             ]
         );
 
@@ -249,10 +247,9 @@ class Akismet
 
         $params = $this->mergeWithDefaultParams(
             [
-                'comment_author' => $data[$author_key] ?? null,
-                'comment_content' => $data[$content_key] ?? null,
-                'comment_author_email' => $data[$email_key] ?? null,
-            ]
+                'comment_author' => array_get($data, $author_key),
+                'comment_content' => array_get($data, $content_key),
+                'comment_author_email' => array_get($data, $email_key),            ]
         );
 
         if ($this->isKeyValid())
