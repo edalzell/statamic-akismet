@@ -62,7 +62,7 @@ class AkismetListener extends Listener
 
                 // throw error that Statamic will treat same as honeypot. i.e. the form will
                 // look like it succeeded
-                throw SilentFormFailureException('Spam submitted');
+                throw new SilentFormFailureException('Spam submitted');
             }
         }
 
