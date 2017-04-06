@@ -90,10 +90,12 @@ class AkismetController extends Controller
 
     public function getForms()
     {
-        return collect(Form::all())->map(function ($form) {
-            $fields = collect(array_keys(Form::get($form['name'])->formset()->data()['fields']));
+        // @todo use Forms:all() when they fix https://github.com/statamic/v2-hub/issues/1346
+        return collect(Folder::getFilesByType(settings_path('formsets'), 'yaml'))->map(function ($file) {
+            /** @var \Statamic\Contracts\Forms\Form $form */
+            $form = Form::get(pathinfo($file)['filename']);
 
-            $fields = $fields->map(function ($field) {
+            $fields = collect(array_keys($form->formset()->data()['fields']))->map(function ($field) {
                 return [
                     'text' => ucfirst($field),
                     'value' => $field,
@@ -101,8 +103,8 @@ class AkismetController extends Controller
             });
 
             return [
-                'text' => $form['title'],
-                'value' => $form['name'],
+                'text' => $form->title(),
+                'value' => $form->name(),
                 'fields' => $fields
             ];
         });

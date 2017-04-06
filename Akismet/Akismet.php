@@ -91,22 +91,28 @@ class Akismet
      *
      * @return string
      */
-    public function getForm()
-    {
-        return $this->config['form_and_fields']['form'];
-    }
+//    public function getForm()
+//    {
+//        return $this->config['form_and_fields']['form'];
+//    }
 
     /**
      * Get the form fields as an array
      *
+     * @param $formset_name string which form are we interested in?
+     *
      * @return array
      */
-    public function getFields()
+    public function getFields($formset_name)
     {
+         $config = collect($this->getConfig('forms'))->first(function($ignored, $data) use ($formset_name) {
+            return $formset_name == array_get($data, 'form_and_fields.form');
+         });
+
         return [
-            array_get($this->config, 'form_and_fields:author', 'author'),
-            array_get($this->config, 'form_and_fields:email', 'email'),
-            array_get($this->config, 'form_and_fields:content', 'content')
+            array_get($config, 'form_and_fields:author_field', 'author'),
+            array_get($config, 'form_and_fields:email_field', 'email'),
+            array_get($config, 'form_and_fields:content_field', 'content')
             ];
     }
 
@@ -114,6 +120,7 @@ class Akismet
      * Validates potential spam against the Akismet API
      *
      * @param array $data
+     * @param string $formset_name
      *
      * @example
      * $data        = array(
@@ -126,9 +133,9 @@ class Akismet
      * @throws Exceptions\AkismetInvalidKeyException
      * @return bool
      */
-    public function detectSpam(array $data = [])
+    public function detectSpam(array $data = [], $formset_name)
     {
-        list($author_key, $email_key, $content_key) = $this->getFields();
+        list($author_key, $email_key, $content_key) = $this->getFields($formset_name);
 
         $params = $this->mergeWithDefaultParams(
             [
@@ -228,7 +235,10 @@ class Akismet
      */
     public function addToQueue($submission)
     {
-        $this->storage->putSerialized($submission->id(), $submission);
+        $formset = $submission->form()->name();
+        $id = $submission->id();
+
+        $this->storage->putSerialized(Path::assemble($formset, $id), $submission);
     }
 
     /**

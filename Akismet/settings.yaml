@@ -8,6 +8,14 @@ fields:
   form_fields_section:
     type: section
     display: Form & Fields
-  form_and_fields:
-    type: akismet
+  forms:
+    type: grid
     display: ' '
+    fields:
+      form_and_fields:
+        type: akismet
+        display: 'Form & Fields'
+        validate: required
+    mode: table
+    min_rows: "1"
+    add_row: Add Form

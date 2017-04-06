@@ -41,32 +41,50 @@ class AkismetListener extends Listener
      *
      * @note $data[content] is required
      *
+     * @throws SilentFormFailureException
+     *
      * @return \Statamic\Forms\Submission|array
      */
     public function checkForSpam($submission)
     {
-        // only do something if we're on the right formset
-        if ($submission->formset()->name() == $this->akismet->getForm())
+        $formset_name = $submission->formset()->name();
+
+        // only do something if we're on the right formset & it's spam
+        if ($this->shouldProcessForm($formset_name) &&
+            ($spam = $this->akismet->detectSpam($submission->data(), $formset_name)))
         {
-            if ($spam = $this->akismet->detectSpam($submission->data()))
+            // if the discard thingy is not set, put in spam queue
+            if (!$spam !== 'discard')
             {
-                // if the discard thingy is not set, put in spam queue
-                if (!$spam !== 'discard')
-                {
-                    //TODO: workaround for https://github.com/statamic/v2-hub/issues/984
-                    $submission_id = $submission->id();
-                    $submission->id($submission_id);
+                //TODO: workaround for https://github.com/statamic/v2-hub/issues/984
+                $submission_id = $submission->id();
+                $submission->id($submission_id);
 
-                    $this->akismet->addToQueue($submission);
-                }
-
-                // throw error that Statamic will treat same as honeypot. i.e. the form will
-                // look like it succeeded
-                throw new SilentFormFailureException('Spam submitted');
+                $this->akismet->addToQueue($submission);
             }
+
+            // throw error that Statamic will treat same as honeypot. i.e. the form will
+            // look like it succeeded
+            throw new SilentFormFailureException('Spam submitted');
         }
 
         return $submission;
+    }
+
+    /**
+     * @param $formset_name string
+     *
+     * @return bool
+     *
+     * Only process the form if the submitted form is the formset in the config
+     *
+     */
+    private function shouldProcessForm($formset_name)
+    {
+        return collect($this->getConfig('forms'))->contains(function($ignore, $value) use ($formset_name)
+        {
+            return $formset_name == array_get($value, 'form_and_fields.form');
+        });
     }
 
     /**
@@ -76,7 +94,7 @@ class AkismetListener extends Listener
      */
     public function nav(Nav $nav)
     {
-        $charge = (new NavItem)->name('Spam Queue')->route('akismet')->icon('untag');
-        $nav->addTo('tools', $charge);
+        $spam = (new NavItem)->name('Spam Queue')->route('akismet')->icon('untag');
+        $nav->addTo('tools', $spam);
     }
 }

@@ -13,7 +13,12 @@ class AkismetFieldtype extends Fieldtype
      */
     public function blank()
     {
-        return null;
+        return [
+            'form' => null,
+            'author_field' => null,
+            'email_field' => null,
+            'content_field' => null
+        ];
     }
 
     /**
@@ -27,9 +32,9 @@ class AkismetFieldtype extends Fieldtype
         // Only have one of each field so it's stored as a simple string value.
         // However, the selectize field needs an array to convert to array
         $data['form'] = isset($data['form']) ? [$data['form']] : '';
-        $data['author'] = isset($data['author']) ? [$data['author']] : '';
-        $data['email'] = isset($data['email']) ? [$data['email']] : '';
-        $data['content'] = isset($data['content']) ? [$data['content']] : '';
+        $data['author_field'] = isset($data['author_field']) ? [$data['author_field']] : '';
+        $data['email_field'] = isset($data['email_field']) ? [$data['email_field']] : '';
+        $data['content_field'] = isset($data['content_field']) ? [$data['content_field']] : '';
 
         return $data;
     }
@@ -45,9 +50,9 @@ class AkismetFieldtype extends Fieldtype
         // As the data comes from a selectize field, it's in an array.
         // We only have one of everything so get rid of all the arrays
         $data['form'] = isset($data['form']) ? reset($data['form']): '';
-        $data['author'] = isset($data['author']) ? reset($data['author']) : '';
-        $data['email'] = isset($data['email']) ? reset($data['email']) : '';
-        $data['content'] = isset($data['content']) ? reset($data['content']) : '';
+        $data['author_field'] = isset($data['author_field']) ? reset($data['author_field']) : '';
+        $data['email_field'] = isset($data['email_field']) ? reset($data['email_field']) : '';
+        $data['content_field'] = isset($data['content_field']) ? reset($data['content_field']) : '';
 
         return $data;
     }
