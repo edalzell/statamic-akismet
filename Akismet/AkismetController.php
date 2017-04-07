@@ -3,6 +3,7 @@
 namespace Statamic\Addons\Akismet;
 
 use Statamic\API\Form;
+use Statamic\API\Path;
 use Statamic\API\Folder;
 use Statamic\API\Helper;
 use Statamic\Extend\Controller;
@@ -26,24 +27,48 @@ class AkismetController extends Controller
     {
         $this->authorize('super');
 
-        return $this->view('index', ['title' => 'Spam Queue']);
+        // get the first form if none chosen
+        $form = $this->akismet->getForms()->first();
+
+        return redirect()->route('queue',"form=".$form['value']);
+    }
+
+    /**
+     * Maps to your route definition in routes.yaml
+     *
+     * @return \Illuminate\View\View
+     */
+    public function queue()
+    {
+        $this->authorize('super');
+
+        $form = Form::get(request('form'));
+
+        return $this->view('queue', [
+            'title' => 'Spam Queue - ' . $form->title(),
+            'formset' => $form->name()
+        ]);
     }
 
     public function discardSpam()
     {
+        $formset = request('formset');
+
         // the ids will be in the request
-        collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored)
+        collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored) use ($formset)
         {
-            $this->akismet->removeFromQueue($id);
+            $this->akismet->removeFromQueue($formset, $id);
         });
     }
 
     public function approveHam()
     {
-        collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored)
+        $formset = request('formset');
+
+        collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored) use ($formset)
         {
             /** @var \Statamic\Forms\Submission $submission */
-            $submission = $this->storage->getSerialized($id);
+            $submission = $this->storage->getSerialized(Path::assemble($formset, $id));
 
             // @todo should validation happen?
             $submission->unguard();
@@ -51,7 +76,7 @@ class AkismetController extends Controller
             $submission->save();
 
             // remove it from queue
-            $this->akismet->removeFromQueue($id);
+            $this->akismet->removeFromQueue($formset, $id);
 
             //@todo submit to Akismet as ham
             $this->akismet->submitHam($submission->data());
@@ -60,14 +85,19 @@ class AkismetController extends Controller
 
     public function getSpam()
     {
+        $formset = request('form');
+
         // @todo replace when https://github.com/statamic/v2-hub/issues/629 is fixed
         // `getFilesByType` retains the array keys so it can return an array that starts at '1' which mucks
         // up the front-end because it gets converted to an Object instead of an array.
         // Which is why we need to use `values`
-        $spam = collect(Folder::disk('storage')->getFilesByType("addons/{$this->getAddonName()}", 'php'))
-            ->map(function($file ) {
+
+        $path = Path::assemble("addons", $this->getAddonName(), $formset);
+        $spam = collect(Folder::disk('storage')->getFilesByType($path, 'php'))
+            ->map(function($file ) use ($formset) {
                 $filename = pathinfo($file)['filename'];
-                $submission = $this->storage->getSerialized($filename)->toArray();
+
+                $submission = $this->storage->getSerialized(Path::assemble($formset, $filename))->toArray();
 
                 // add the id so that Dossier can remove it from the view after approve/discard
                 $submission['id'] = $filename;
@@ -82,7 +112,7 @@ class AkismetController extends Controller
             ->all();
 
         return [
-            'columns' => $this->akismet->getFields(),
+            'columns' => $this->akismet->getFields($formset),
             'items' => $spam
         ];
 
@@ -90,23 +120,6 @@ class AkismetController extends Controller
 
     public function getForms()
     {
-        // @todo use Forms:all() when they fix https://github.com/statamic/v2-hub/issues/1346
-        return collect(Folder::getFilesByType(settings_path('formsets'), 'yaml'))->map(function ($file) {
-            /** @var \Statamic\Contracts\Forms\Form $form */
-            $form = Form::get(pathinfo($file)['filename']);
-
-            $fields = collect(array_keys($form->formset()->data()['fields']))->map(function ($field) {
-                return [
-                    'text' => ucfirst($field),
-                    'value' => $field,
-                ];
-            });
-
-            return [
-                'text' => $form->title(),
-                'value' => $form->name(),
-                'fields' => $fields
-            ];
-        });
+        return $this->akismet->getForms();
     }
 }

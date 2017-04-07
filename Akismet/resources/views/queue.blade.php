@@ -1,7 +1,6 @@
 @extends('layout')
 
 @section('content')
-
     <akismet-queue inline-template>
         <div class="listing term-listing">
             <div id="publish-controls" class="head sticky">

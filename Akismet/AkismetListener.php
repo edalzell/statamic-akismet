@@ -2,9 +2,8 @@
 
 namespace Statamic\Addons\Akismet;
 
+use Statamic\API\Nav;
 use Statamic\Extend\Listener;
-use Statamic\CP\Navigation\Nav;
-use Statamic\CP\Navigation\NavItem;
 use Statamic\Exceptions\SilentFormFailureException;
 
 class AkismetListener extends Listener
@@ -89,12 +88,20 @@ class AkismetListener extends Listener
 
     /**
      * Add Akismet to the side nav
-     * @param  Nav $nav [description]
+     * @param  \Statamic\CP\Navigation\Nav $nav [description]
      * @return void
      */
-    public function nav(Nav $nav)
+    public function nav($nav)
     {
-        $spam = (new NavItem)->name('Spam Queue')->route('akismet')->icon('untag');
+        // Create the first level navigation item
+        $spam = Nav::item('Spam Queue')->route('akismet')->icon('untag');
+
+        $spam->add(function ($item) {
+            $this->akismet->getForms()->each(function($form) use ($item) {
+                $item->add(Nav::item($form['text'])->route('queue',"form=".$form['value']));
+            });
+        });
+
         $nav->addTo('tools', $spam);
     }
 }

@@ -4,6 +4,11 @@ routes:
     uses: index
     as: akismet
 
+  # Spam Queue
+  /queue:
+    uses: queue
+    as: queue
+
   # get list of queued spam
   get@spam: getSpam
 

@@ -15,6 +15,7 @@ fields:
       form_and_fields:
         type: akismet
         display: 'Form & Fields'
+        instructions: "Please add one row at a time, saving each time (there's an issue)"
         validate: required
     mode: table
     min_rows: "1"

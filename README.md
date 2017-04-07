@@ -6,7 +6,7 @@
 # Configuration 
 1. Visit `yoursite.com/cp/addons/akismet/settings` or `CP > Configure > Addons > Akismet`
 2. Add your Akismet key (get it [here](https://akismet.com/account/)
-3. Set which form you'd like to guard against spam
+3. Set which form(s) you'd like to guard against spam
 4. Set the fields that map to `author`, `email` & `content`. All of these fields are checked for spam.
 
 # Usage

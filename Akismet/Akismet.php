@@ -6,8 +6,10 @@ use Statamic\API\Str;
 use Statamic\API\URL;
 use GuzzleHttp\Client;
 use Statamic\API\File;
+use Statamic\API\Form;
 use Statamic\API\Path;
 use Statamic\API\Config;
+use Statamic\API\Folder;
 use Statamic\Extend\Extensible;
 use Statamic\Addons\Akismet\Exceptions\AkismetInvalidKeyException;
 
@@ -221,12 +223,38 @@ class Akismet
         return sprintf('https://%s.%s/comment-check', $this->api_key, self::ENDPOINT);
     }
 
-    public function removeFromQueue($id)
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    public function getForms()
+    {
+        // @todo use Forms:all() when they fix https://github.com/statamic/v2-hub/issues/1346
+        return collect(Folder::getFilesByType(settings_path('formsets'), 'yaml'))->map(function ($file) {
+            /** @var \Statamic\Contracts\Forms\Form $form */
+            $form = Form::get(pathinfo($file)['filename']);
+
+            $fields = collect(array_keys($form->formset()->data()['fields']))->map(function ($field) {
+                return [
+                    'text' => ucfirst($field),
+                    'value' => $field,
+                ];
+            });
+
+            return [
+                'text' => $form->title(),
+                'value' => $form->name(),
+                'fields' => $fields
+            ];
+        });
+    }
+
+    public function removeFromQueue($formset, $id)
     {
         // @todo replace when https://github.com/statamic/v2-hub/issues/629 is fixed
         File::disk('storage')->delete(Path::assemble(
             'addons',
             $this->getAddonClassName(),
+            $formset,
             Str::ensureRight($id, '.php')));
     }
 
