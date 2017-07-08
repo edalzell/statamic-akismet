@@ -301,6 +301,41 @@ class Akismet
         throw new AkismetInvalidKeyException;
     }
 
+    /**
+     * Sends spam (not ham) to Akismet so it can learn
+     *
+     * @param array $data
+     * @param bool  $testing let Akismet know if this a test call
+     *
+     * @throws AkismetInvalidKeyException
+     * @return bool
+     */
+    public function submitSpam(array $data = [], bool $testing = false)
+    {
+        $author_key = $this->getConfig('author', 'author');
+        $email_key = $this->getConfig('email', 'email');
+        $content_key = $this->getConfig('content', 'content');
+
+        $params = $this->mergeWithDefaultParams(
+            [
+                'comment_author' => array_get($data, $author_key),
+                'comment_content' => array_get($data, $content_key),
+                'comment_author_email' => array_get($data, $email_key),
+                'is_test' => $testing,
+            ]
+        );
+
+        if ($this->isKeyValid())
+        {
+            $response = $this->httpClient->post($this->getSpamEndpoint(), ['form_params' => $params]);
+            $body = (string)$response->getBody();
+
+            return (bool)('Thanks for making the web a better place.' == $body);
+        }
+
+        throw new AkismetInvalidKeyException;
+    }
+
     protected function getHamEndpoint()
     {
         return sprintf('https://%s.%s/submit-ham', $this->api_key, self::ENDPOINT);

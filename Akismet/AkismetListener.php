@@ -2,6 +2,7 @@
 
 namespace Statamic\Addons\Akismet;
 
+use Log;
 use Statamic\API\Nav;
 use Statamic\Extend\Listener;
 use Statamic\Exceptions\SilentFormFailureException;
@@ -15,7 +16,8 @@ class AkismetListener extends Listener
      */
     public $events = [
         'Form.submission.creating' => 'checkForSpam',
-        'cp.nav.created' => 'nav'
+        'cp.nav.created' => 'nav',
+        'cp.add_to_head' => 'addToHead'
     ];
 
     /** @var  Akismet */
@@ -103,5 +105,13 @@ class AkismetListener extends Listener
         });
 
         $nav->addTo('tools', $spam);
+    }
+
+    public function addToHead()
+    {
+        if ((request()->segment(2) == 'forms') && (request()->segment(3)))
+        {
+            return $this->js->tag('cp.js');
+        }
     }
 }

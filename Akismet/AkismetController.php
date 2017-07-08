@@ -7,6 +7,7 @@ use Statamic\API\Path;
 use Statamic\API\Folder;
 use Statamic\API\Helper;
 use Statamic\Extend\Controller;
+use Statamic\Forms\Submission;
 
 class AkismetController extends Controller
 {
@@ -81,6 +82,24 @@ class AkismetController extends Controller
             //@todo submit to Akismet as ham
             $this->akismet->submitHam($submission->data());
         });
+    }
+
+    public function getSubmitSpam()
+    {
+        /** @var \Statamic\Forms\Submission $submission */
+        $submission = Form::get(request('form'))->submission(request('id'));
+
+        // add it to spam queue
+        $this->akismet->addToQueue($submission);
+
+        // send to Akismet
+        $this->akismet->submitSpam($submission->data(), $this->getConfig('testing', false));
+
+        //delete it
+        $submission->delete();
+
+        // go back so it refreshes the list of submissions
+        return back();
     }
 
     public function getSpam()

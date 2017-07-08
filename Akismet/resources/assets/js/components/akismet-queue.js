@@ -5,8 +5,14 @@ Vue.use(VueTruncate);
 Vue.component('akismet-queue', {
     mixins: [Dossier],
 
+    props: ['formset'],
+
     data: function () {
         return {
+            ajax: {
+                get: cp_url('addons/akismet/spam?form=' + this.formset),
+                api: cp_url('addons/akismet/spam')
+            },
             tableOptions: {
                 checkboxes: true,
                 partials: {
@@ -18,18 +24,6 @@ Vue.component('akismet-queue', {
             }
         }
     },
-    computed: {
-        formset: function() {
-            return this.getQueryParam('form');
-        },
-        ajax: function() {
-            return {
-                get: cp_url('addons/akismet/spam?form=' + this.formset),
-                api: cp_url('addons/akismet/spam')
-            }
-        }
-    },
-
     methods: {
         discardItem: function (id) {
             let self = this;
@@ -101,19 +95,6 @@ Vue.component('akismet-queue', {
                     });
                 });
             });
-        },
-        getQueryParam: function(formset) {
-            let qs = document.location.search.split('+').join(' ');
-
-            var params = {},
-                tokens,
-                re = /[?&]?([^=]+)=([^&]*)/g;
-
-            while (tokens = re.exec(qs)) {
-                params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
-            }
-
-            return params[formset];
         },
     },
 });

@@ -1,7 +1,7 @@
 @extends('layout')
 
 @section('content')
-    <akismet-queue inline-template>
+    <akismet-queue inline-template formset="{{ $formset }}">
         <div class="listing term-listing">
             <div id="publish-controls" class="head sticky">
                 <h1 id="publish-title">{{ $title }}</h1>
