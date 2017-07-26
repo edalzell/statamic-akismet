@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="a902891d-c854-4f41-9c0d-7c74549dd9f0" name="v2 (project level)" url="https://v2.dev">
-        <fileTransfer port="0" mountedRoot="$USER_HOME$/Sites/v2/site/addons" accessType="MOUNT" />
+        <fileTransfer port="0" mountedRoot="$USER_HOME$/Sites/akismet/site/addons" accessType="MOUNT" />
       </webServer>
     </option>
   </component>
