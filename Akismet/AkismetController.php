@@ -7,13 +7,20 @@ use Statamic\API\Path;
 use Statamic\API\Folder;
 use Statamic\API\Helper;
 use Statamic\Extend\Controller;
-use Statamic\Forms\Submission;
 
 class AkismetController extends Controller
 {
     /** @var  Akismet */
     private $akismet;
 
+    public function __construct()
+    {
+        $this->akismet = new Akismet();
+    }
+
+    /**
+     * @deprecated not used in Statamic 2.6
+     */
     public function init()
     {
         $this->akismet = new Akismet();

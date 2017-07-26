@@ -89,16 +89,6 @@ class Akismet
     }
 
     /**
-     * Get the form we are checking
-     *
-     * @return string
-     */
-//    public function getForm()
-//    {
-//        return $this->config['form_and_fields']['form'];
-//    }
-
-    /**
      * Get the form fields as an array
      *
      * @param $formset_name string which form are we interested in?

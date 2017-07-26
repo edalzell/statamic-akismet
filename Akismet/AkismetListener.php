@@ -23,6 +23,14 @@ class AkismetListener extends Listener
     /** @var  Akismet */
     private $akismet;
 
+    public function __construct()
+    {
+        $this->akismet = new Akismet();
+    }
+
+    /**
+     * @deprecated not used in Statamic 2.6
+     */
     public function init()
     {
         $this->akismet = new Akismet();
