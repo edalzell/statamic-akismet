@@ -6,25 +6,14 @@ use Statamic\API\Form;
 use Statamic\API\Path;
 use Statamic\API\Folder;
 use Statamic\API\Helper;
+use Illuminate\Http\Request;
+use Statamic\API\User;
 use Statamic\Extend\Controller;
+use Statamic\Exceptions\UnauthorizedHttpException;
 
 class AkismetController extends Controller
 {
-    /** @var  Akismet */
-    private $akismet;
-
-    public function __construct()
-    {
-        $this->akismet = new Akismet();
-    }
-
-    /**
-     * @deprecated not used in Statamic 2.6
-     */
-    public function init()
-    {
-        $this->akismet = new Akismet();
-    }
+    use Akismet;
 
     /**
      * Maps to your route definition in routes.yaml
@@ -33,24 +22,24 @@ class AkismetController extends Controller
      */
     public function index()
     {
-        $this->authorize('super');
-
         // get the first form if none chosen
-        $form = $this->akismet->getForms()->first();
+        $form = $this->getForms()->first();
 
         return redirect()->route('queue',"form=".$form['value']);
     }
 
     /**
-     * Maps to your route definition in routes.yaml
+     * Show the spam queue
+     *
+     * @param $request \Illuminate\Http\Request
      *
      * @return \Illuminate\View\View
      */
-    public function queue()
+    public function queue(Request $request)
     {
-        $this->authorize('super');
+        $this->authorized();
 
-        $form = Form::get(request('form'));
+        $form = Form::get($request->input('form'));
 
         return $this->view('queue', [
             'title' => 'Spam Queue - ' . $form->title(),
@@ -58,20 +47,30 @@ class AkismetController extends Controller
         ]);
     }
 
-    public function discardSpam()
+    /**
+     * Discard spam
+     *
+     * @param $request \Illuminate\Http\Request
+     */
+    public function discardSpam(Request $request)
     {
-        $formset = request('formset');
+        $formset = $request->input('formset');
 
         // the ids will be in the request
         collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored) use ($formset)
         {
-            $this->akismet->removeFromQueue($formset, $id);
+            $this->removeFromQueue($formset, $id);
         });
     }
 
-    public function approveHam()
+    /**
+     * Approve ham
+     *
+     * @param $request \Illuminate\Http\Request
+     */
+    public function approveHam(Request $request)
     {
-        $formset = request('formset');
+        $formset = $request->input('formset');
 
         collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored) use ($formset)
         {
@@ -84,23 +83,30 @@ class AkismetController extends Controller
             $submission->save();
 
             // remove it from queue
-            $this->akismet->removeFromQueue($formset, $id);
+            $this->removeFromQueue($formset, $id);
 
-            //@todo submit to Akismet as ham
-            $this->akismet->submitHam($submission->data());
+            // submit to Akismet as ham
+            $this->submitHam($submission->data());
         });
     }
 
-    public function getSubmitSpam()
+    /**
+     * Approve ham
+     *
+     * @param $request \Illuminate\Http\Request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function getSubmitSpam(Request $request)
     {
         /** @var \Statamic\Forms\Submission $submission */
-        $submission = Form::get(request('form'))->submission(request('id'));
+        $submission = Form::get($request->input('form'))->submission(request('id'));
 
         // add it to spam queue
-        $this->akismet->addToQueue($submission);
+        $this->addToQueue($submission);
 
         // send to Akismet
-        $this->akismet->submitSpam($submission->data(), $this->getConfig('testing', false));
+        $this->submitSpam($submission->data(), $this->getConfig('testing', false));
 
         //delete it
         $submission->delete();
@@ -109,9 +115,16 @@ class AkismetController extends Controller
         return back();
     }
 
-    public function getSpam()
+    /**
+     * Get all the spam
+     *
+     * @param $request \Illuminate\Http\Request
+     *
+     * @return array
+     */
+    public function getSpam(Request $request)
     {
-        $formset = request('form');
+        $formset = $request->input('form');
 
         // @todo replace when https://github.com/statamic/v2-hub/issues/629 is fixed
         // `getFilesByType` retains the array keys so it can return an array that starts at '1' which mucks
@@ -138,14 +151,16 @@ class AkismetController extends Controller
             ->all();
 
         return [
-            'columns' => $this->akismet->getFields($formset),
+            'columns' => $this->getFields($formset),
             'items' => $spam
         ];
-
     }
 
-    public function getForms()
+    private function authorized()
     {
-        return $this->akismet->getForms();
+        if (!$this->canAccessQueue())
+        {
+            throw new UnauthorizedHttpException(403, 'This action is unauthorized.');
+        }
     }
 }

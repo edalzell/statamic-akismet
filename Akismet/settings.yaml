@@ -1,10 +1,10 @@
 fields:
-  akismet_section:
-    type: section
-    display: Akismet
   akismet_key:
     type: text
     validate: required
+  roles:
+    type: user_roles
+    instructions: Add roles that are allowed to access the Spam Queue
   form_fields_section:
     type: section
     display: Form & Fields

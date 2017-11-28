@@ -2,6 +2,7 @@
 
 namespace Statamic\Addons\Akismet;
 
+use Statamic\API\Helper;
 use Statamic\API\Str;
 use Statamic\API\URL;
 use GuzzleHttp\Client;
@@ -9,15 +10,12 @@ use Statamic\API\File;
 use Statamic\API\Form;
 use Statamic\API\Path;
 use Statamic\API\Config;
-use Statamic\API\Folder;
-use Statamic\Extend\Extensible;
 use Statamic\Addons\Akismet\Exceptions\AkismetInvalidKeyException;
+use Statamic\API\User;
 
-class Akismet
+trait Akismet
 {
-    use Extensible;
-
-    const ENDPOINT = 'rest.akismet.com/1.1';
+    static $endpoint = 'rest.akismet.com/1.1';
 
     /**
      * Akismet API key, get one here: https://akismet.com/plans/
@@ -205,12 +203,12 @@ class Akismet
 
     protected function getKeyEndpoint()
     {
-        return sprintf('https://%s/verify-key', self::ENDPOINT);
+        return sprintf('https://%s/verify-key', self::$endpoint);
     }
 
     protected function getContentEndpoint()
     {
-        return sprintf('https://%s.%s/comment-check', $this->api_key, self::ENDPOINT);
+        return sprintf('https://%s.%s/comment-check', $this->api_key, self::$endpoint);
     }
 
     /**
@@ -218,24 +216,28 @@ class Akismet
      */
     public function getForms()
     {
-        // @todo use Forms:all() when they fix https://github.com/statamic/v2-hub/issues/1346
-        return collect(Folder::getFilesByType(settings_path('formsets'), 'yaml'))->map(function ($file) {
-            /** @var \Statamic\Contracts\Forms\Form $form */
-            $form = Form::get(pathinfo($file)['filename']);
-
-            $fields = collect(array_keys($form->formset()->data()['fields']))->map(function ($field) {
+        return collect(Form::getAllFormsets())->map(function ($form) {
+            $fields = collect(Form::fields($form['name']))->map(function ($form_field) {
                 return [
-                    'text' => ucfirst($field),
-                    'value' => $field,
+                    'text' => array_get($form_field, 'display', ucfirst($form_field['name'])),
+                    'value' => $form_field['field'],
                 ];
             });
 
             return [
-                'text' => $form->title(),
-                'value' => $form->name(),
+                'text' => $form['title'],
+                'value' => $form['name'],
                 'fields' => $fields
             ];
         });
+    }
+
+    protected function canAccessQueue()
+    {
+        $user = User::getCurrent();
+
+        return $user->isSuper() ||
+            !empty(array_intersect($user->roles()->keys()->all(), array_get($this->getConfig(), 'roles', [])));
     }
 
     public function removeFromQueue($formset, $id)
@@ -328,11 +330,11 @@ class Akismet
 
     protected function getHamEndpoint()
     {
-        return sprintf('https://%s.%s/submit-ham', $this->api_key, self::ENDPOINT);
+        return sprintf('https://%s.%s/submit-ham', $this->api_key, self::$endpoint);
     }
 
     protected function getSpamEndpoint()
     {
-        return sprintf('https://%s.%s/submit-spam', $this->api_key, self::ENDPOINT);
+        return sprintf('https://%s.%s/submit-spam', $this->api_key, self::$endpoint);
     }
 }

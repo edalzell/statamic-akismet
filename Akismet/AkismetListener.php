@@ -2,13 +2,18 @@
 
 namespace Statamic\Addons\Akismet;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Log;
+use Statamic\API\Auth;
 use Statamic\API\Nav;
+use Statamic\API\User;
 use Statamic\Extend\Listener;
 use Statamic\Exceptions\SilentFormFailureException;
 
 class AkismetListener extends Listener
 {
+    use Akismet, AuthorizesRequests;
+
     /**
      * The events to be listened for, and the methods to call.
      *
@@ -20,32 +25,16 @@ class AkismetListener extends Listener
         'cp.add_to_head' => 'addToHead'
     ];
 
-    /** @var  Akismet */
-    private $akismet;
-
-    public function __construct()
-    {
-        $this->akismet = new Akismet();
-    }
-
     /**
-     * @deprecated not used in Statamic 2.6
-     */
-    public function init()
-    {
-        $this->akismet = new Akismet();
-    }
-
-    /**
-     * Checks whether the content is considered spam as far as akismet is concerned
+     * Checks whether the content is considered spam as far as Akismet is concerned
      *
      * @param \Statamic\Forms\Submission $submission The submission containing the key/value pairs to validate
      *
      * @example
      * $data        = array(
-     *    'email'        => 'john@smith.com',
-     *    'author'    => 'John Smith',
-     *    'content'    => 'We are Smith & Co, one of the best companies in the world.'
+     *    'email'    => 'john@smith.com',
+     *    'author'   => 'John Smith',
+     *    'content'  => 'We are Smith & Co, one of the best companies in the world.'
      * )
      *
      * @note $data[content] is required
@@ -60,7 +49,7 @@ class AkismetListener extends Listener
 
         // only do something if we're on the right formset & it's spam
         if ($this->shouldProcessForm($formset_name) &&
-            ($spam = $this->akismet->detectSpam($submission->data(), $formset_name)))
+            ($spam = $this->detectSpam($submission->data(), $formset_name)))
         {
             // if the discard thingy is not set, put in spam queue
             if (!$spam !== 'discard')
@@ -69,7 +58,7 @@ class AkismetListener extends Listener
                 $submission_id = $submission->id();
                 $submission->id($submission_id);
 
-                $this->akismet->addToQueue($submission);
+                $this->addToQueue($submission);
             }
 
             // throw error that Statamic will treat same as honeypot. i.e. the form will
@@ -103,16 +92,18 @@ class AkismetListener extends Listener
      */
     public function nav($nav)
     {
-        // Create the first level navigation item
-        $spam = Nav::item('Spam Queue')->route('akismet')->icon('untag');
+        if ($this->canAccessQueue()) {
+            // Create the first level navigation item
+            $spam = Nav::item('Spam Queue')->route('akismet')->icon('untag');
 
-        $spam->add(function ($item) {
-            $this->akismet->getForms()->each(function($form) use ($item) {
-                $item->add(Nav::item($form['text'])->route('queue',"form=".$form['value']));
+            $spam->add(function ($item) {
+                $this->getForms()->each(function ($form) use ($item) {
+                    $item->add(Nav::item($form['text'])->route('queue', "form=" . $form['value']));
+                });
             });
-        });
 
-        $nav->addTo('tools', $spam);
+            $nav->addTo('tools', $spam);
+        }
     }
 
     public function addToHead()
