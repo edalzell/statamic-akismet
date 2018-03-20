@@ -2,16 +2,15 @@
 
 namespace Statamic\Addons\Akismet;
 
-use Statamic\API\Helper;
 use Statamic\API\Str;
 use Statamic\API\URL;
 use GuzzleHttp\Client;
 use Statamic\API\File;
 use Statamic\API\Form;
 use Statamic\API\Path;
+use Statamic\API\User;
 use Statamic\API\Config;
 use Statamic\Addons\Akismet\Exceptions\AkismetInvalidKeyException;
-use Statamic\API\User;
 
 trait Akismet
 {
