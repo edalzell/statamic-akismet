@@ -4,10 +4,10 @@ namespace Statamic\Addons\Akismet;
 
 use Statamic\API\Form;
 use Statamic\API\Path;
+use Statamic\API\User;
 use Statamic\API\Folder;
 use Statamic\API\Helper;
 use Illuminate\Http\Request;
-use Statamic\API\User;
 use Statamic\Extend\Controller;
 use Statamic\Exceptions\UnauthorizedHttpException;
 
@@ -41,10 +41,11 @@ class AkismetController extends Controller
 
         $form = Form::get($request->input('form'));
 
-        return $this->view('queue', [
+        return $this->view('queue', array(
             'title' => 'Spam Queue - ' . $form->title(),
             'formset' => $form->name()
-        ]);
+            )
+        );
     }
 
     /**
@@ -57,7 +58,7 @@ class AkismetController extends Controller
         $formset = $request->input('formset');
 
         // the ids will be in the request
-        collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored) use ($formset)
+        collect(Helper::ensureArray(request('ids', array())))->each(function($id, $ignored) use ($formset)
         {
             $this->removeFromQueue($formset, $id);
         });
@@ -72,7 +73,7 @@ class AkismetController extends Controller
     {
         $formset = $request->input('formset');
 
-        collect(Helper::ensureArray(request('ids', [])))->each(function($id, $ignored) use ($formset)
+        collect(Helper::ensureArray(request('ids', array())))->each(function($id, $ignored) use ($formset)
         {
             /** @var \Statamic\Forms\Submission $submission */
             $submission = $this->storage->getSerialized(Path::assemble($formset, $id));

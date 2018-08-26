@@ -2,13 +2,13 @@
 
 namespace Statamic\Addons\Akismet;
 
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Log;
-use Statamic\API\Auth;
 use Statamic\API\Nav;
+use Statamic\API\Auth;
 use Statamic\API\User;
 use Statamic\Extend\Listener;
 use Statamic\Exceptions\SilentFormFailureException;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AkismetListener extends Listener
 {
@@ -19,11 +19,11 @@ class AkismetListener extends Listener
      *
      * @var array
      */
-    public $events = [
+    public $events = array(
         'Form.submission.creating' => 'checkForSpam',
         'cp.nav.created' => 'nav',
         'cp.add_to_head' => 'addToHead'
-    ];
+    );
 
     /**
      * Checks whether the content is considered spam as far as Akismet is concerned

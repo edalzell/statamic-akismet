@@ -13,12 +13,12 @@ class AkismetFieldtype extends Fieldtype
      */
     public function blank()
     {
-        return [
+        return array(
             'form' => null,
             'author_field' => null,
             'email_field' => null,
             'content_field' => null
-        ];
+        );
     }
 
     /**
