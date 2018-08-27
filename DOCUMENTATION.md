@@ -10,6 +10,10 @@
 4. Set which form(s) you'd like to guard against spam
 5. Set the fields that map to `author`, `email` & `content`. All of these fields are checked for spam.
 
+# Testing
+
+To test Akismet set the author to `viagra-test-123` or the email to `akismet-guaranteed-spam@example.com`. Populate all other required fields with typical values. The Akismet API will always return a true response to a valid request with one of those values. If you receive anything else, something is wrong in your client, data, or communications.
+
 # Usage
 
 Use a normal Form submission. If it's spam, Statamic will ignore it and show a success message but Akismet will put it in the the Spam Queue, available at `yoursite.com]/cp/addons/akismet`:
