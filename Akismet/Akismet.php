@@ -128,7 +128,7 @@ trait Akismet
         list($author_key, $email_key, $content_key) = $this->getFields($formset_name);
 
         $data = Helper::ensureArray($data);
-        
+
         $params = $this->mergeWithDefaultParams(
             [
                 'comment_author' => array_get($data, $author_key),
@@ -140,7 +140,7 @@ trait Akismet
         if ($this->isKeyValid())
         {
             $response = $this->httpClient->post(
-                $this->getContentEndpoint(), 
+                $this->getContentEndpoint(),
                 array('form_params' => $params)
             );
             $body = (string)$response->getBody();
@@ -169,7 +169,7 @@ trait Akismet
                 'user_agent' => $this->ua,
                 'comment_type' => 'contact-form'
             ),
-            Helpers::ensureArray($params)
+            Helper::ensureArray($params)
         );
     }
 
@@ -344,7 +344,7 @@ trait Akismet
         if ($this->isKeyValid())
         {
             $response = $this->httpClient->post(
-                $this->getSpamEndpoint(), 
+                $this->getSpamEndpoint(),
                 array('form_params' => $params)
             );
             $body = (string)$response->getBody();
