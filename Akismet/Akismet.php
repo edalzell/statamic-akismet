@@ -15,7 +15,7 @@ use Statamic\Addons\Akismet\Exceptions\AkismetInvalidKeyException;
 
 trait Akismet
 {
-    static $endpoint = 'rest.akismet.com/1.1';
+    public static $endpoint = 'rest.akismet.com/1.1';
 
     /**
      * Akismet API key, get one here: https://akismet.com/plans/
@@ -95,15 +95,15 @@ trait Akismet
      */
     public function getFields($formset_name)
     {
-         $config = collect($this->getConfig('forms'))->first(function($ignored, $data) use ($formset_name) {
+        $config = collect($this->getConfig('forms'))->first(function ($ignored, $data) use ($formset_name) {
             return $formset_name == array_get($data, 'form_and_fields.form');
-         });
+        });
 
-        return [
+        return array(
             array_get($config, 'form_and_fields:author_field', 'author'),
             array_get($config, 'form_and_fields:email_field', 'email'),
-            array_get($config, 'form_and_fields:content_field', 'content')
-            ];
+            array_get($config, 'form_and_fields:content_field', 'content'),
+        );
     }
 
     /**
@@ -130,25 +130,24 @@ trait Akismet
         $data = Helper::ensureArray($data);
 
         $params = $this->mergeWithDefaultParams(
-            [
+            array(
                 'comment_author' => array_get($data, $author_key),
                 'comment_content' => array_get($data, $content_key),
                 'comment_author_email' => array_get($data, $email_key),
-            ]
+            )
         );
 
-        if ($this->isKeyValid())
-        {
+        if ($this->isKeyValid()) {
             $response = $this->httpClient->post(
                 $this->getContentEndpoint(),
                 array('form_params' => $params)
             );
             $body = (string)$response->getBody();
 
-            if ($response->hasHeader('X-akismet-pro-tip'))
-            {
+            if ($response->hasHeader('X-akismet-pro-tip')) {
                 return 'discard';
             }
+
             return ('true' == $body) ? 'spam' : false;
         }
 
@@ -167,7 +166,7 @@ trait Akismet
                 'blog' => $this->site_url,
                 'user_ip' => $this->getRequestingIp(),
                 'user_agent' => $this->ua,
-                'comment_type' => 'contact-form'
+                'comment_type' => 'contact-form',
             ),
             Helper::ensureArray($params)
         );
@@ -192,7 +191,7 @@ trait Akismet
     {
         $params = array(
             'key' => $this->api_key,
-            'blog' => URL::makeAbsolute(Config::getSiteUrl())
+            'blog' => URL::makeAbsolute(Config::getSiteUrl()),
         );
 
         /*
@@ -226,17 +225,17 @@ trait Akismet
     {
         return collect(Form::getAllFormsets())->map(function ($form) {
             $fields = collect(Form::fields($form['name']))->map(function ($form_field) {
-                return [
+                return array(
                     'text' => array_get($form_field, 'display', ucfirst($form_field['name'])),
                     'value' => $form_field['field'],
-                ];
+                );
             });
 
-            return [
+            return array(
                 'text' => $form['title'],
                 'value' => $form['name'],
-                'fields' => $fields
-            ];
+                'fields' => $fields,
+            );
         });
     }
 
@@ -264,7 +263,8 @@ trait Akismet
             'addons',
             $this->getAddonClassName(),
             $formset,
-            Str::ensureRight($id, '.php')));
+            Str::ensureRight($id, '.php')
+        ));
     }
 
     /**
@@ -295,14 +295,14 @@ trait Akismet
         $data = Helper::ensureArray($data);
 
         $params = $this->mergeWithDefaultParams(
-            [
+            array(
                 'comment_author' => array_get($data, $author_key),
                 'comment_content' => array_get($data, $content_key),
-                'comment_author_email' => array_get($data, $email_key),            ]
+                'comment_author_email' => array_get($data, $email_key)
+            )
         );
 
-        if ($this->isKeyValid())
-        {
+        if ($this->isKeyValid()) {
             $response = $this->httpClient->post(
                 $this->getHamEndpoint(),
                 array('form_params' => $params)
@@ -341,8 +341,7 @@ trait Akismet
             )
         );
 
-        if ($this->isKeyValid())
-        {
+        if ($this->isKeyValid()) {
             $response = $this->httpClient->post(
                 $this->getSpamEndpoint(),
                 array('form_params' => $params)

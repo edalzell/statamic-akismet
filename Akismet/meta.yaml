@@ -1,7 +1,7 @@
 name: Akismet
-version: "1.6.2"
+version: "1.6.3"
 description: Provides Akismet spam filter for form submissions
-url: https://silentzconsulting.com/addons/akismet
+url: https://github.com/edalzell/statamic-akismet
 developer: Erin Dalzell
-developer_url: https://silentzconsulting.com/addons
+developer_url: https://silentzconsulting.com/
 commercial: true

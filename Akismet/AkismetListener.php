@@ -2,10 +2,9 @@
 
 namespace Statamic\Addons\Akismet;
 
-use Log;
 use Statamic\API\Nav;
-use Statamic\API\Auth;
-use Statamic\API\User;
+use Statamic\API\Path;
+use Statamic\API\Folder;
 use Statamic\Extend\Listener;
 use Statamic\Exceptions\SilentFormFailureException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -49,11 +48,9 @@ class AkismetListener extends Listener
 
         // only do something if we're on the right formset & it's spam
         if ($this->shouldProcessForm($formset_name) &&
-            ($spam = $this->detectSpam($submission->data(), $formset_name)))
-        {
+            ($spam = $this->detectSpam($submission->data(), $formset_name))) {
             // if the discard thingy is not set, put in spam queue
-            if (!$spam !== 'discard')
-            {
+            if (!$spam !== 'discard') {
                 //TODO: workaround for https://github.com/statamic/v2-hub/issues/984
                 $submission_id = $submission->id();
                 $submission->id($submission_id);
@@ -79,8 +76,7 @@ class AkismetListener extends Listener
      */
     private function shouldProcessForm($formset_name)
     {
-        return collect($this->getConfig('forms'))->contains(function($ignore, $value) use ($formset_name)
-        {
+        return collect($this->getConfig('forms'))->contains(function ($ignore, $value) use ($formset_name) {
             return $formset_name == array_get($value, 'form_and_fields.form');
         });
     }
@@ -94,22 +90,30 @@ class AkismetListener extends Listener
     {
         if ($this->canAccessQueue()) {
             // Create the first level navigation item
-            $spam = Nav::item('Spam Queue')->route('akismet')->icon('untag');
+            $spamMenu = Nav::item('Spam Queue')->route('akismet')->icon('untag');
+            $totalSpamCount = 0;
 
-            $spam->add(function ($item) {
-                $this->getForms()->each(function ($form) use ($item) {
-                    $item->add(Nav::item($form['text'])->route('queue', "form=" . $form['value']));
-                });
+            $this->getForms()->each(function ($form) use ($spamMenu, &$totalSpamCount) {
+                $path = Path::assemble('addons', $this->getAddonName(), $form['value']);
+                $count = count(Folder::disk('storage')->getFilesByType($path, 'php'));
+                $totalSpamCount += $count;
+
+                $spamMenu->add(
+                        Nav::item($form['text'])
+                            ->route('queue', 'form=' . $form['value'])
+                            ->badge($count)
+                    );
             });
 
-            $nav->addTo('tools', $spam);
+            $spamMenu->badge($totalSpamCount);
+
+            $nav->addTo('tools', $spamMenu);
         }
     }
 
     public function addToHead()
     {
-        if ((request()->segment(2) == 'forms') && (request()->segment(3)))
-        {
+        if ((request()->segment(2) == 'forms') && (request()->segment(3))) {
             return $this->js->tag('cp.js');
         }
     }
