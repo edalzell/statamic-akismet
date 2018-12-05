@@ -21,7 +21,7 @@ let addButtons = function( delay ) {
                 // get segments of the url so we can get the id
                 let segments = $(this)
                     .parents('td.column-actions')
-                    .siblings('td.cell-datestamp')
+                    .siblings('td.cell-datestring')
                     .children('a')
                     .attr('href')
                     .split('/');
