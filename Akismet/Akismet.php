@@ -55,7 +55,7 @@ trait Akismet
     public function __construct()
     {
         $this->api_key = $this->getConfig('akismet_key');
-        $this->site_url = Config::getSiteUrl();
+        $this->site_url = URL::makeAbsolute(Config::getSiteUrl());
         $this->httpClient = new Client();
         $this->ua = $this->getUserAgent();
         $this->config = $this->getConfig();
