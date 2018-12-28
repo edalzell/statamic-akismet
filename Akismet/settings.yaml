@@ -5,9 +5,40 @@ fields:
   roles:
     type: user_roles
     instructions: Add roles that are allowed to access the Spam Queue
+  user_fields:
+    type: section
+  user_check_registrations:
+    type: toggle
+    display: Check User Registrations?
+    default: false
+    width: 25
+  user_first_name_field:
+    type: suggest
+    mode: akismet.user_fields
+    display: First Name Field
+    max_items: 1
+    width: 25
+    show_when:
+      user_toggle: true
+  user_last_name_field:
+    type: suggest
+    mode: akismet.user_fields
+    display: Last Name Field
+    max_items: 1
+    width: 25
+    show_when:
+      user_toggle: true
+  user_content_field:
+    type: suggest
+    mode: akismet.user_fields
+    display: Content Field
+    max_items: 1
+    width: 25
+    show_when:
+      user_toggle: true
   form_fields_section:
     type: section
-    display: Form & Fields
+    display: Forms & Fields
   forms:
     type: grid
     display: ' '
