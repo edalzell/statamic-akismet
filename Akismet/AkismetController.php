@@ -91,7 +91,7 @@ class AkismetController extends Controller
     }
 
     /**
-     * Approve ham
+     * Submit spam
      *
      * @param \Illuminate\Http\Request $request
      *
