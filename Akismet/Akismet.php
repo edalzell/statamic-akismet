@@ -174,7 +174,7 @@ trait Akismet
 
         if ($this->isKeyValid()) {
             $response = $this->httpClient->post(
-                $thih(),
+                $this->hamEndpoint(),
                 ['form_params' => $params]
             );
             $body = (string) $response->getBody();
@@ -213,7 +213,7 @@ trait Akismet
 
         if ($this->isKeyValid()) {
             $response = $this->httpClient->post(
-                $this->getSpamEndpoint(),
+                $this->spamEndpoint(),
                 ['form_params' => $params]
             );
             $body = (string) $response->getBody();
@@ -222,6 +222,24 @@ trait Akismet
         }
 
         throw new AkismetInvalidKeyException;
+    }
+
+    /**
+     * @param array $params The parameters to be merged with defaults
+     *
+     * @return array
+     */
+    protected function mergeWithDefaultParams($params = null)
+    {
+        return array_merge(
+            [
+                'blog' => $this->siteUrl,
+                'user_ip' => $this->requestingIp(),
+                'user_agent' => $this->userAgent(),
+                'comment_type' => 'contact-form',
+            ],
+            Helper::ensureArray($params)
+        );
     }
 
     protected function contentEndpoint()
