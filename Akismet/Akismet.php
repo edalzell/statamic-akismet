@@ -103,6 +103,17 @@ trait Akismet
         });
     }
 
+    private function formConfig($formsetName)
+    {
+        return array_get(
+            collect($this->getConfig('forms'))->first(function ($ignored, $data) use ($formsetName) {
+                return $formsetName == array_get($data, 'form_and_fields.form');
+            }),
+            'form_and_fields',
+            []
+        );
+    }
+
     protected function canAccessQueue()
     {
         $user = User::getCurrent();
