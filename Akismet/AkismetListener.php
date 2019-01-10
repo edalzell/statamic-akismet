@@ -46,7 +46,7 @@ class AkismetListener extends Listener
     public function checkSubmission($submission)
     {
         // only do something if we're on the right formset & it's spam
-        if ($this->shouldProcessForm($formset_name) &&
+        if ($this->shouldProcessForm($submission) &&
             ($spam = $this->detectSpam($submission))) {
             // if the discard thingy is not set, put in spam queue
             if (!$spam !== 'discard') {
