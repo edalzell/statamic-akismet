@@ -136,9 +136,18 @@ class AkismetController extends Controller
             ->map(function ($file) use ($formset) {
                 $filename = pathinfo($file)['filename'];
 
-                $submission = $this->storage
-                    ->getSerialized(Path::assemble($formset, $filename))
-                    ->toArray();
+                // init the array w/ empty strings just in case the submission is a bit funky
+                $submission = array_merge(
+                    array_fill_keys(
+                        $this->fields($formset),
+                        ''
+                    ),
+                    array_filter(
+                        $this->storage
+                            ->getSerialized(Path::assemble($formset, $filename))
+                            ->toArray()
+                    )
+                );
 
                 // add the id so that Dossier can remove it from the view after approve/discard
                 $submission['id'] = $filename;
