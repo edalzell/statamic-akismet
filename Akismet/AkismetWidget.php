@@ -16,17 +16,23 @@ class AkismetWidget extends Widget
      */
     public function html()
     {
-        $spam = null;
+        $spam = [];
+        $forms = $this->getConfig('forms');
 
-        collect(Form::getAllFormsets())->each(function ($form) use (&$spam) {
-            $formset = $form['name'];
-            $path = Path::assemble('addons', $this->getAddonName(), $formset);
-            $count = count(Folder::disk('storage')->getFilesByType($path, 'php'));
+        collect(Form::getAllFormsets())
+            ->filter(function ($form) use ($forms) {
+                return collect($forms)->contains(function ($ignore, $value) use ($form) {
+                    return $form['name'] == array_get($value, 'form_and_fields.form');
+                });
+            })->each(function ($form) use (&$spam) {
+                $name = $form['name'];
+                $path = Path::assemble('addons', $this->getAddonName(), $name);
+                $count = count(Folder::disk('storage')->getFilesByType($path, 'php'));
 
-            $spam[$formset]['title'] = $form['title'];
-            $spam[$formset]['count'] = $count;
-            $spam[$formset]['route'] = route('queue', 'form=' . $formset);
-        });
+                $spam[$name]['title'] = $form['title'];
+                $spam[$name]['count'] = $count;
+                $spam[$name]['route'] = route('queue', 'form=' . $name);
+            });
 
         return $this->view('widget', compact('spam'))->render();
     }
