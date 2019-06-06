@@ -25,3 +25,7 @@ For forms, use a normal Form submission. If it's spam, Statamic will ignore it a
 From there you can approve it, i.e. it's not spam and complete the form submission, or discard it and delete it from the queue.
 
 You can also mark submissions as spam, from the submission view.
+
+**Widget**
+
+You can put a widget on your Dashboard that shows the state of all of your spam queues. Add to your `Widgets` one of type `akismet`.
