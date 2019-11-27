@@ -19,7 +19,7 @@ fields:
     max_items: 1
     width: 25
     show_when:
-      user_toggle: true
+      user_check_registrations: true
   user_last_name_field:
     type: suggest
     mode: akismet.user_fields
@@ -27,7 +27,7 @@ fields:
     max_items: 1
     width: 25
     show_when:
-      user_toggle: true
+      user_check_registrations: true
   user_content_field:
     type: suggest
     mode: akismet.user_fields
@@ -35,17 +35,17 @@ fields:
     max_items: 1
     width: 25
     show_when:
-      user_toggle: true
+      user_check_registrations: true
   form_fields_section:
     type: section
     display: Forms & Fields
   forms:
     type: grid
-    display: ' '
+    display: " "
     fields:
       form_and_fields:
         type: akismet
-        display: 'Form & Fields'
+        display: "Form & Fields"
         instructions: "Please add one row at a time, saving each time (there's an issue)"
         validate: required
     mode: table
