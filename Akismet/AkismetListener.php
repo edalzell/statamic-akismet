@@ -7,6 +7,7 @@ use Statamic\API\Path;
 use Statamic\API\Folder;
 use Statamic\Extend\Listener;
 use Statamic\Exceptions\SilentFormFailureException;
+use Statamic\Addons\Akismet\Exceptions\AkismetInvalidKeyException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AkismetListener extends Listener
