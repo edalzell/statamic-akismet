@@ -144,7 +144,7 @@ class AkismetController extends Controller
                     ),
                     array_filter(
                         $this->storage
-                            ->getSerialized(Path::assemble($formset, $filename))
+                            ->getSerialized(Path::assemble($formset, $filename), collect([]))
                             ->toArray()
                     )
                 );
